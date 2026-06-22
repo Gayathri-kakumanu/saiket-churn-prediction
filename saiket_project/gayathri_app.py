@@ -3,63 +3,72 @@ import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
-# --- Page Configuration ---
-st.set_page_config(page_title="Customer Churn Predictor", layout="centered")
+# Set up the webpage layout and title
+st.set_page_config(page_title="Customer Churn Prediction", layout="centered")
 
 st.title("📊 Customer Churn Prediction Dashboard")
-st.write("Created by Gayathri | SaiKet Systems Internship Solution")
-st.write("---")
+st.markdown("### Created by Gayathri | SaiKet Systems Internship Solution")
+st.write("Adjust the customer attributes below to predict the likelihood of churn in real-time.")
 
-# --- Step 1: Background Model Training (Simulated for App) ---
-# We load the exact data processed in your earlier tasks to keep it perfectly aligned
+# 1. Load the processed data and train the model inside the app
 @st.cache_resource
 def train_app_model():
-# Change lines 17 and 18 inside train_app_model() to look like this:
-X_train = pd.read_csv("saiket_project/finalized_train_inputs.csv")
-y_train = pd.read_csv("saiket_project/train_labels.csv").values.ravel()
+    # Points directly to your subfolder files on GitHub
+    X_train = pd.read_csv("saiket_project/finalized_train_inputs.csv")
+    y_train = pd.read_csv("saiket_project/train_labels.csv").values.ravel()
     
-    model = RandomForestClassifier(class_weight='balanced', random_state=42)
+    # Train the Random Forest using balanced class weights to fix data skew
+    model = RandomForestClassifier(random_state=42, class_weight="balanced", n_estimators=100)
     model.fit(X_train, y_train)
-    return model, X_train.columns
+    
+    return model, X_train.columns.tolist()
 
+# Run the training function
 predictive_model, trained_columns = train_app_model()
 
-# --- Step 2: Sidebar Input Form for Business Users ---
-st.sidebar.header("User Input Features")
+# 2. Build the User Input Form on the UI
+st.sidebar.header("👤 Customer Profile Inputs")
 
-tenure = st.sidebar.slider("Tenure (Months)", min_value=0, max_value=72, value=12)
+# Sidebar sliders and dropdowns for the user to change values
+tenure = st.sidebar.slider("Tenure (Months)", min_value=1, max_value=72, value=12)
 monthly_charges = st.sidebar.slider("Monthly Charges ($)", min_value=18.0, max_value=120.0, value=65.0)
-total_charges = st.sidebar.number_input("Total Charges ($)", min_value=0.0, max_value=9000.0, value=780.0)
+total_charges = st.sidebar.slider("Total Charges ($)", min_value=18.0, max_value=8500.0, value=800.0)
+
 contract_type = st.sidebar.selectbox("Contract Type", ["Month-to-month", "One year", "Two year"])
+tech_support = st.sidebar.selectbox("Has Tech Support?", ["No", "Yes", "No internet service"])
+online_security = st.sidebar.selectbox("Has Online Security?", ["No", "Yes", "No internet service"])
 
-# --- Step 3: Format Input into Model Columns ---
-input_data = {
-    'tenure': [tenure],
-    'MonthlyCharges': [monthly_charges],
-    'TotalCharges': [total_charges],
-    'Contract_Month-to-month': [1 if contract_type == "Month-to-month" else 0],
-    'Contract_One year': [1 if contract_type == "One year" else 0],
-    'Contract_Two year': [1 if contract_type == "Two year" else 0]
-}
+# 3. Process the UI inputs to match the model's training columns
+input_data = {col: 0 for col in trained_columns}
 
-input_df = pd.DataFrame(input_data)
-# Ensure columns match training alignment perfectly
-input_df = input_df.reindex(columns=trained_columns, fill_value=0)
+# Map numerical inputs directly
+if "tenure" in input_data: input_data["tenure"] = tenure
+if "MonthlyCharges" in input_data: input_data["MonthlyCharges"] = monthly_charges
+if "TotalCharges" in input_data: input_data["TotalCharges"] = total_charges
 
-# --- Step 4: Live Prediction Engine ---
-st.subheader("🔮 Real-Time Prediction Analytics")
+# Map categorical inputs to their respective one-hot encoded flags
+if f"Contract_{contract_type}" in input_data:
+    input_data[f"Contract_{contract_type}"] = 1
+if f"TechSupport_{tech_support}" in input_data:
+    input_data[f"TechSupport_{tech_support}"] = 1
+if f"OnlineSecurity_{online_security}" in input_data:
+    input_data[f"OnlineSecurity_{online_security}"] = 1
 
-if st.button("Analyze Risk Profile"):
-    prediction = predictive_model.predict(input_df)[0]
-    probability = predictive_model.predict_proba(input_df)[0][1]
+# Convert dictionary to a DataFrame matching the model columns layout
+input_df = pd.DataFrame([input_data])[trained_columns]
+
+# 4. Predict and display results on the main screen
+st.subheader("🔮 Churn Risk Evaluation")
+
+if st.button("Analyze Risk Profile", type="primary"):
+    # Generate prediction probabilities
+    prediction_prob = predictive_model.predict_proba(input_df)[0][1]
+    risk_percentage = prediction_prob * 100
     
-    st.write("---")
-    if prediction == 1:
-        st.error(f"⚠️ **High Attrition Risk Detected!**")
-        st.write(f"This customer has a **{probability*100:.1f}%** probability of canceling their service.")
+    st.markdown("---")
+    if risk_percentage >= 50:
+        st.error(f"🚨 **High Risk Warning:** This customer has a **{risk_percentage:.1f}%** probability of churning!")
+        st.write("👉 **Retention Recommendation:** Offer a long-term contract upgrade or provide discount incentives on their Monthly Charges.")
     else:
-        st.success(f"✅ **Low Attrition Risk (Loyal Customer)**")
-        st.write(f"This customer has only a **{probability*100:.1f}%** probability of leaving.")
-        
-    # Display individual input properties back to the user
-    st.dataframe(input_df)
+        st.success(f"✅ **Low Risk Profile:** This customer is stable with only a **{risk_percentage:.1f}%** probability of churning.")
+        st.write("👉 **Status:** Customer shows strong signs of loyalty. Keep monitoring behavior via regular service standard updates.")
