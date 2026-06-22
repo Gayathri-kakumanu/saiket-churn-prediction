@@ -38,23 +38,42 @@ contract_type = st.sidebar.selectbox("Contract Type", ["Month-to-month", "One ye
 tech_support = st.sidebar.selectbox("Has Tech Support?", ["No", "Yes", "No internet service"])
 online_security = st.sidebar.selectbox("Has Online Security?", ["No", "Yes", "No internet service"])
 
+# ==============================================================================
 # 3. Process the UI inputs to match the model's training columns
+# ==============================================================================
 input_data = {col: 0 for col in trained_columns}
 
-# Map numerical inputs directly
-if "tenure" in input_data: input_data["tenure"] = tenure
-if "MonthlyCharges" in input_data: input_data["MonthlyCharges"] = monthly_charges
-if "TotalCharges" in input_data: input_data["TotalCharges"] = total_charges
+# Helper function to find a column dynamically regardless of exact capitalization
+def find_matching_col(name_to_find):
+    for col in trained_columns:
+        if col.lower() == name_to_find.lower():
+            return col
+    return None
 
-# Map categorical inputs to their respective one-hot encoded flags
-if f"Contract_{contract_type}" in input_data:
-    input_data[f"Contract_{contract_type}"] = 1
-if f"TechSupport_{tech_support}" in input_data:
-    input_data[f"TechSupport_{tech_support}"] = 1
-if f"OnlineSecurity_{online_security}" in input_data:
-    input_data[f"OnlineSecurity_{online_security}"] = 1
+# Dynamic Mapping for Numerical Features
+tenure_col = find_matching_col("tenure")
+if tenure_col: input_data[tenure_col] = tenure
 
-# Convert dictionary to a DataFrame matching the model columns layout
+monthly_col = find_matching_col("MonthlyCharges")
+if monthly_col: input_data[monthly_col] = monthly_charges
+
+total_col = find_matching_col("TotalCharges")
+if total_col: input_data[total_col] = total_charges
+
+
+# Dynamic Mapping for Categorical Features (Contract, Tech Support, Online Security)
+for col in trained_columns:
+    # Checks for Contract types
+    if "contract" in col.lower() and contract_type.lower() in col.lower():
+        input_data[col] = 1
+    # Checks for Tech Support flags
+    elif "techsupport" in col.lower() and tech_support.lower() in col.lower():
+        input_data[col] = 1
+    # Checks for Online Security flags
+    elif "onlinesecurity" in col.lower() and online_security.lower() in col.lower():
+        input_data[col] = 1
+
+# Convert dictionary to a DataFrame matching the model columns layout perfectly
 input_df = pd.DataFrame([input_data])[trained_columns]
 
 # 4. Predict and display results on the main screen
