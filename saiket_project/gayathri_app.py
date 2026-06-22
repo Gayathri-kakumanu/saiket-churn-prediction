@@ -14,8 +14,9 @@ st.write("---")
 # We load the exact data processed in your earlier tasks to keep it perfectly aligned
 @st.cache_resource
 def train_app_model():
-    X_train = pd.read_csv("finalized_train_inputs.csv")
-    y_train = pd.read_csv("train_labels.csv").values.ravel()
+# Change lines 17 and 18 inside train_app_model() to look like this:
+X_train = pd.read_csv("saiket_project/finalized_train_inputs.csv")
+y_train = pd.read_csv("saiket_project/train_labels.csv").values.ravel()
     
     model = RandomForestClassifier(class_weight='balanced', random_state=42)
     model.fit(X_train, y_train)
