@@ -1,4 +1,5 @@
 # 📊 Customer Churn Prediction Dashboard
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](PASTE_YOUR_LIVE_STREAMLIT_URL_HERE)
 
 ### Developed by Gayathri | SaiKet Systems Machine Learning Internship Solution
 
