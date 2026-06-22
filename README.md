@@ -2,8 +2,11 @@
 saiKet Systems Machine Learning Internship Project - Customer Churn Prediction App built with Random Forest and Streamlit.
 # 📊 Customer Churn Prediction Dashboard
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://your-app-link-here.streamlit.app)
+### 🌐 [Click Here to Open the Live Web Application](https://saiket-churn-prediction-gayathri.streamlit.app/)
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://saiket-churn-prediction-gayathri.streamlit.app/)
+
+---
 ### Developed by Gayathri | SaiKet Systems Machine Learning Internship Solution
 
 An end-to-end, production-ready machine learning pipeline and interactive web application built to predict telecom customer attrition. This project transitions a basic flat-file dataset into a modular, enterprise-grade data science workflow, complete with feature driver visualization and a live user interface.
